@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Locações</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="navbar-inner">
+            <div class="navbar-brand">
+                <span class="navbar-icon">⌂</span>
+                <div>
+                    <h1>Gestão de Locações</h1>
+                    <p>Controle de casas e reservas</p>
+                </div>
+            </div>
+        </div>
+        <div class="menu-wrapper">
+            <nav class="menu">
+                <a href="{{ url_for('painel') }}" class="menu-btn">⊞ Painel</a>
+                <a href="{{ url_for('reservas') }}" class="menu-btn">▦ Reservas</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block conteudo %}{% endblock %}
+    </main>
+
+</body>
+</html>

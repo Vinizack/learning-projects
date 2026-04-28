@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block conteudo %}
+
+<a href="/nova-reserva" class="btn-nova-reserva">
+    + Nova Reserva
+</a>
+
+<div class="cards-resumo">
+    <div class="card">
+        <div class="card-icon">⌂</div>
+        <div>
+            <h3>Reservas — Amiga</h3>
+            <p>{{ total_amiga }}</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-icon">⌂</div>
+        <div>
+            <h3>Reservas — Casa Grande</h3>
+            <p>{{ total_casa_grande }}</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-icon">▦</div>
+        <div>
+            <h3>Total de Reservas</h3>
+            <p>{{ total_reservas }}</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-icon">$</div>
+        <div>
+            <h3>Receita Total</h3>
+            <p>R$ {{ "{:,.2f}".format(receita_total).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="form-card">
+    <div class="painel-header">
+        <h2>Reservas</h2>
+        <div class="filtros">
+
+            <input type="text" id="filtro-busca"
+                placeholder="Buscar responsável..."
+                value="{{ busca or '' }}"
+                onkeyup="aplicarFiltros()">
+
+            <select id="filtro-casa" onchange="aplicarFiltros()">
+                <option value="">Todas as Casas</option>
+                {% for casa in casas %}
+                    <option value="{{ casa.id }}"
+                        {% if casa_id_selecionada == casa.id|string %}selected{% endif %}>
+                        {{ casa.nome_casa }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select id="filtro-periodo" onchange="aplicarFiltros()">
+                <option value="" {% if not periodo_selecionado %}selected{% endif %}>Todas</option>
+                <option value="ativas" {% if periodo_selecionado == 'ativas' %}selected{% endif %}>Ativas</option>
+                <option value="passadas" {% if periodo_selecionado == 'passadas' %}selected{% endif %}>Passadas</option>
+            </select>
+
+        </div>
+    </div>
+
+    {% if locacoes %}
+        <table class="tabela">
+            <thead>
+                <tr>
+                    <th>Responsável</th>
+                    <th>Casa</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Hóspedes</th>
+                    <th>Valor</th>
+                    <th>Avaliação</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loc in locacoes %}
+                <tr>
+                    <td>{{ loc.responsavel or 'Sem responsável' }}</td>
+                    <td><span class="casa-link">{{ loc.nome_casa }}</span></td>
+                    <td>{{ loc.data_checkin.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ loc.data_checkout.strftime('%d/%m/%Y') }}</td>
+                    <td class="hospedes-num">{{ loc.quantidade_hospedes }}</td>
+                    <td>R$ {{ "{:,.2f}".format(loc.valor_total).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                    <td>
+                        {% if loc.avaliacao == 'Bom' %}
+                            <span class="badge-bom">👍 Bom</span>
+                        {% elif loc.avaliacao == 'Médio' %}
+                            <span class="badge-medio">😐 Médio</span>
+                        {% elif loc.avaliacao == 'Ruim' %}
+                            <span class="badge-ruim">👎 Ruim</span>
+                        {% else %}
+                            <span style="color:#ccc;">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="acoes">
+                        <a href="/reserva/{{ loc.id }}/hospedes" class="btn-primary">Ver</a>
+                        <a href="/reserva/{{ loc.id }}/excluir"
+                           onclick="return confirm('Excluir esta reserva e todos os hóspedes?')"
+                           class="btn-danger">Excluir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="vazio">
+            <p>🏠</p>
+            <p>Nenhuma reserva encontrada</p>
+            <small>Cadastre uma nova reserva usando o botão acima</small>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function aplicarFiltros() {
+    const casa = document.getElementById('filtro-casa').value;
+    const periodo = document.getElementById('filtro-periodo').value;
+    const busca = document.getElementById('filtro-busca').value;
+    window.location.href = `/?casa_id=${casa}&periodo=${periodo}&busca=${busca}`;
+}
+</script>
+
+{% endblock %}

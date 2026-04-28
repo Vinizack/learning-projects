@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block conteudo %}
+
+<div class="form-card nova-reserva-card">
+
+    <div class="nova-reserva-titulo">
+        <span class="titulo-icone">⌂</span>
+        <h2>Nova Reserva</h2>
+    </div>
+
+    <p class="subtitulo">Preencha os dados para cadastrar uma nova reserva</p>
+
+    {% if erro %}
+        <div class="aviso" style="margin-bottom: 16px;">
+            ⚠️ {{ erro }}
+        </div>
+    {% endif %}
+
+    <form method="POST" action="/nova-reserva">
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Casa</label>
+                <select name="casa_id" required>
+                    <option value="">Selecione uma casa</option>
+                    {% for casa in casas %}
+                        <option value="{{ casa.id }}">{{ casa.nome_casa }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Nome do Responsável</label>
+                <input type="text" name="responsavel_nome" placeholder="Ex: João Silva" required>
+            </div>
+
+            <div class="form-group">
+                <label>Quantidade de Hóspedes</label>
+                <input type="number" name="quantidade_hospedes" placeholder="Ex: 4" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label>Valor (R$)</label>
+                <input type="number" name="valor_total" placeholder="Ex: 500,00" step="0.01" min="0" required>
+            </div>
+
+            <div class="form-group">
+                <label>Data de Check-in</label>
+                <input type="date" name="data_checkin" id="data_checkin" required>
+            </div>
+
+            <div class="form-group">
+                <label>Data de Check-out</label>
+                <input type="date" name="data_checkout" id="data_checkout" required>
+            </div>
+
+            <div class="form-group">
+                <label>Horário de Check-in</label>
+                <input type="time" name="hora_checkin" value="14:00">
+            </div>
+
+            <div class="form-group">
+                <label>Horário de Check-out</label>
+                <input type="time" name="hora_checkout" value="11:00">
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-cadastrar">
+                ✦ Cadastrar Reserva
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    const checkin = document.querySelector('input[name="data_checkin"]').value;
+    const checkout = document.querySelector('input[name="data_checkout"]').value;
+    if (checkin && checkout && checkout <= checkin) {
+        e.preventDefault();
+        alert('⚠️ A data de check-out deve ser posterior à data de check-in!');
+        return;
+    }
+    const horaCheckin = document.querySelector('input[name="hora_checkin"]').value;
+    const horaCheckout = document.querySelector('input[name="hora_checkout"]').value;
+    if (checkin === checkout && horaCheckout <= horaCheckin) {
+        e.preventDefault();
+        alert('⚠️ Se as datas forem iguais, o horário de check-out deve ser posterior ao de check-in!');
+    }
+});
+
+document.querySelector('input[name="data_checkin"]').addEventListener('change', function() {
+    document.querySelector('input[name="data_checkout"]').min = this.value;
+});
+</script>
+
+{% endblock %}

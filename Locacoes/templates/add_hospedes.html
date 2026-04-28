@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+
+{% block conteudo %}
+
+<!-- HEADER DA RESERVA -->
+<div class="reserva-header">
+    <div class="reserva-header-titulo">
+        <span class="reserva-header-icone">▦</span>
+        <div>
+            <h2>Reserva — {{ locacao.nome_casa }}</h2>
+            <p>Detalhes da estadia</p>
+        </div>
+    </div>
+    <div class="reserva-info-grid">
+        <div class="reserva-info-item">
+            <span class="info-label">⬛ Check-in</span>
+            <span class="info-valor">{{ locacao.data_checkin.strftime('%d/%m/%Y') }}</span>
+            <span class="info-sub">{{ locacao.hora_checkin }}</span>
+        </div>
+        <div class="reserva-info-item">
+            <span class="info-label">⬛ Check-out</span>
+            <span class="info-valor">{{ locacao.data_checkout.strftime('%d/%m/%Y') }}</span>
+            <span class="info-sub">{{ locacao.hora_checkout }}</span>
+        </div>
+        <div class="reserva-info-item">
+            <span class="info-label">⬛ Hóspedes</span>
+            <span class="info-valor">{{ locacao.quantidade_hospedes }} pessoas</span>
+        </div>
+        <div class="reserva-info-item">
+            <span class="info-label">⬛ Valor</span>
+            <span class="info-valor">R$ {{ "{:,.2f}".format(locacao.valor_total).replace(",", "X").replace(".", ",").replace("X", ".") }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- AVISO DE QUANTIDADE -->
+{% set cadastrados = hospedes|length %}
+{% set faltam = locacao.quantidade_hospedes - cadastrados %}
+<div class="reserva-aviso {% if faltam <= 0 %}reserva-aviso-sucesso{% endif %}">
+    {% if faltam > 0 %}
+        ⚠️ <strong>{{ cadastrados }} de {{ locacao.quantidade_hospedes }} hóspedes cadastrados.</strong>
+        <span class="aviso-faltam">Faltam {{ faltam }}.</span>
+    {% else %}
+        ✅ <strong>Todos os {{ locacao.quantidade_hospedes }} hóspedes cadastrados!</strong>
+    {% endif %}
+</div>
+
+<!-- FORMULÁRIO DE HÓSPEDE -->
+<div class="form-card">
+    <div class="nova-reserva-titulo">
+        <span class="titulo-icone" style="background: linear-gradient(135deg, #00b894, #00cec9);">✦</span>
+        <div>
+            <h2 style="border:none; padding:0;">Adicionar Hóspede</h2>
+            <p class="subtitulo" style="margin:0; padding:0;">Preencha os dados do hóspede</p>
+        </div>
+    </div>
+
+    <form method="POST" style="margin-top: 24px;">
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Nome completo <span style="color:#e74c3c;">*</span></label>
+                <input type="text" name="nome"
+                    value="{{ responsavel_nome }}"
+                    placeholder="Ex: João Silva" required>
+            </div>
+
+            <div class="form-group">
+                <label>CPF <span style="color:#e74c3c;">*</span></label>
+                <input type="text" name="cpf" placeholder="Ex: 000.000.000-00" maxlength="14">
+                {% if erro_cpf %}
+                    <span class="erro-campo">❌ {{ erro_cpf }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Faixa Etária <span style="color:#e74c3c;">*</span></label>
+                <select name="faixa_etaria">
+                    <option value="">Selecione</option>
+                    <option value="Bebê">Bebê (0-2 anos)</option>
+                    <option value="Criança">Criança (3-12 anos)</option>
+                    <option value="Adolescente">Adolescente (13-17 anos)</option>
+                    <option value="Adulto">Adulto (18-59 anos)</option>
+                    <option value="Idoso">Idoso (60+ anos)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Modelo do Carro</label>
+                <input type="text" name="modelo_carro" placeholder="Ex: Honda Civic">
+            </div>
+
+            <div class="form-group">
+                <label>Placa do Carro</label>
+                <input type="text" name="placa_carro" placeholder="Ex: ABC-1234">
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-cadastrar" style="background: linear-gradient(135deg, #00b894, #00cec9);">
+                ✦ Adicionar Hóspede
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- LISTA DE HÓSPEDES -->
+<div class="form-card">
+    <div class="nova-reserva-titulo">
+        <span class="titulo-icone" style="background: linear-gradient(135deg, #1a6fb5, #6c3fc5);">✦</span>
+        <div>
+            <h2 style="border:none; padding:0;">Hóspedes Cadastrados</h2>
+            <p class="subtitulo" style="margin:0; padding:0;">{{ cadastrados }} de {{ locacao.quantidade_hospedes }} registrados</p>
+        </div>
+    </div>
+
+    {% if hospedes %}
+        <table class="tabela" style="margin-top: 24px;">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Faixa Etária</th>
+                    <th>Carro</th>
+                    <th>Placa</th>
+                    <th>Tipo</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in hospedes %}
+                <tr>
+                    <td>{{ h.nome }}</td>
+                    <td>{{ h.cpf or '—' }}</td>
+                    <td>
+                        {% if h.faixa_etaria == 'Bebê' %}
+                            <span class="badge-faixa bebe">{{ h.faixa_etaria }}</span>
+                        {% elif h.faixa_etaria == 'Criança' %}
+                            <span class="badge-faixa crianca">{{ h.faixa_etaria }}</span>
+                        {% elif h.faixa_etaria == 'Adolescente' %}
+                            <span class="badge-faixa adolescente">{{ h.faixa_etaria }}</span>
+                        {% elif h.faixa_etaria == 'Adulto' %}
+                            <span class="badge-faixa adulto">{{ h.faixa_etaria }}</span>
+                        {% elif h.faixa_etaria == 'Idoso' %}
+                            <span class="badge-faixa idoso">{{ h.faixa_etaria }}</span>
+                        {% else %}
+                            <span style="color:#ccc;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ h.modelo_carro or '—' }}</td>
+                    <td>{{ h.placa_carro or '—' }}</td>
+                    <td>
+                        {% if h.is_responsavel %}
+                            <span class="badge-responsavel">Responsável</span>
+                        {% else %}
+                            <span style="color:#aaa;">Hóspede</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/hospede/{{ h.id }}/excluir"
+                           onclick="return confirm('Excluir este hóspede?')"
+                           class="btn-danger">Excluir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="vazio">
+            <p>👥</p>
+            <p>Nenhum hóspede cadastrado ainda</p>
+        </div>
+    {% endif %}
+
+    <div class="form-actions" style="margin-top: 16px;">
+        <a href="/" class="btn-cadastrar">✓ Concluir Reserva</a>
+    </div>
+</div>
+
+<!-- AVALIAÇÃO DA RESERVA -->
+<div class="form-card">
+    <div class="nova-reserva-titulo">
+        <span class="titulo-icone" style="background: linear-gradient(135deg, #f0a500, #e17055);">★</span>
+        <div>
+            <h2 style="border:none; padding:0;">Avaliação da Reserva</h2>
+            <p class="subtitulo" style="margin:0; padding:0;">Como foi a estadia? <span style="color:#f0a500;">(opcional)</span></p>
+        </div>
+    </div>
+
+    {% set hoje = now.date() %}
+    {% if locacao.data_checkout <= hoje %}
+
+        <form method="POST" action="/reserva/{{ locacao_id }}/avaliar" style="margin-top: 24px;">
+            <div class="form-group">
+                <label>Avaliação</label>
+                <div class="avaliacoes">
+                    <button type="button"
+                        class="btn-avaliacao bom {% if locacao.avaliacao == 'Bom' %}ativo{% endif %}"
+                        onclick="selecionarAvaliacao('Bom')">
+                        👍 Bom
+                    </button>
+                    <button type="button"
+                        class="btn-avaliacao medio {% if locacao.avaliacao == 'Médio' %}ativo{% endif %}"
+                        onclick="selecionarAvaliacao('Médio')">
+                        — Médio
+                    </button>
+                    <button type="button"
+                        class="btn-avaliacao ruim {% if locacao.avaliacao == 'Ruim' %}ativo{% endif %}"
+                        onclick="selecionarAvaliacao('Ruim')">
+                        👎 Ruim
+                    </button>
+                </div>
+                <input type="hidden" name="avaliacao" id="avaliacao-valor"
+                    value="{{ locacao.avaliacao or '' }}">
+            </div>
+
+            <div class="form-group" style="margin-top: 16px;">
+                <label>Comentário <span style="color:#f0a500;">(opcional)</span></label>
+                <textarea name="comentario" rows="3"
+                    placeholder="Observações sobre a estadia...">{{ locacao.comentario or '' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-cadastrar">💾 Salvar Avaliação</button>
+            </div>
+        </form>
+
+    {% else %}
+        <div class="aviso" style="margin-top: 16px;">
+            🔒 Avaliação disponível após o checkout em
+            <strong>{{ locacao.data_checkout.strftime('%d/%m/%Y') }}</strong>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function validarCPF(cpf) {
+    cpf = cpf.replace(/[^\d]/g, '');
+    if (cpf.length !== 11) return false;
+    if (/^(\d)\1+$/.test(cpf)) return false;
+    let soma = 0;
+    for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+    let digito1 = (soma * 10) % 11;
+    if (digito1 === 10 || digito1 === 11) digito1 = 0;
+    if (digito1 !== parseInt(cpf[9])) return false;
+    soma = 0;
+    for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+    let digito2 = (soma * 10) % 11;
+    if (digito2 === 10 || digito2 === 11) digito2 = 0;
+    if (digito2 !== parseInt(cpf[10])) return false;
+    return true;
+}
+
+document.querySelector('input[name="cpf"]').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g, '');
+    if (v.length <= 11) {
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+    this.value = v;
+});
+
+document.querySelector('input[name="cpf"]').addEventListener('blur', function() {
+    const cpf = this.value;
+    if (cpf && !validarCPF(cpf)) {
+        this.style.borderColor = '#e74c3c';
+        let erro = document.getElementById('erro-cpf-js');
+        if (!erro) {
+            erro = document.createElement('span');
+            erro.id = 'erro-cpf-js';
+            erro.className = 'erro-campo';
+            erro.textContent = '❌ CPF inválido';
+            this.parentNode.appendChild(erro);
+        }
+    } else {
+        this.style.borderColor = '#4caf50';
+        const erro = document.getElementById('erro-cpf-js');
+        if (erro) erro.remove();
+    }
+});
+
+document.querySelector('form').addEventListener('submit', function(e) {
+    const cpf = document.querySelector('input[name="cpf"]').value;
+    if (cpf && !validarCPF(cpf)) {
+        e.preventDefault();
+        alert('⚠️ CPF inválido! Verifique o número digitado.');
+    }
+});
+
+function selecionarAvaliacao(valor) {
+    document.querySelectorAll('.btn-avaliacao').forEach(b => b.classList.remove('ativo'));
+    const mapa = { 'Bom': 'bom', 'Médio': 'medio', 'Ruim': 'ruim' };
+    document.querySelector(`.btn-avaliacao.${mapa[valor]}`).classList.add('ativo');
+    document.getElementById('avaliacao-valor').value = valor;
+}
+</script>
+
+{% endblock %}
